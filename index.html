@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ระบบวิเคราะห์แคมเปญการตลาดทุเรียน - วิเคราะห์ข้อมูลและติดตามผลลัพธ์">
+    <meta name="keywords" content="ทุเรียน, การตลาด, วิเคราะห์, แคมเปญ">
+    <title>ระบบวิเคราะห์แคมเปญการตลาดทุเรียน</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <img src="logo.png" alt="Durian Analytics Logo" style="height:40px; vertical-align:middle; margin-right:10px;">
+                    Durian Analytics
+                </a>
+                <div class="header-actions">
+                    <a href="history.html" class="history-button">ประวัติการวิเคราะห์</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="dashboard-title">
+                <h1>ระบบวิเคราะห์แคมเปญการตลาดทุเรียน</h1>
+                <p>ติดตามและวิเคราะห์ผลลัพธ์ของแคมเปญการตลาดทุเรียนของคุณ</p>
+            </div>
+
+            <div class="analysis-input">
+                <h2>วิเคราะห์ข้อความ</h2>
+                <div class="source-selector">
+                    <div class="source-item">
+                        <input type="checkbox" id="facebook" checked>
+                        <label for="facebook">Facebook</label>
+                    </div>
+                    <div class="source-item">
+                        <input type="checkbox" id="twitter" checked>
+                        <label for="twitter">Twitter</label>
+                    </div>
+                    <div class="source-item">
+                        <input type="checkbox" id="instagram" checked>
+                        <label for="instagram">Instagram</label>
+                    </div>
+                </div>
+                <textarea placeholder="ใส่ข้อความที่ต้องการวิเคราะห์..."></textarea>
+                <button class="interactive-button" id="analyze-btn" onclick="analyzeText()">วิเคราะห์ข้อความ</button>
+            </div>
+            <div id="analyze-toast" style="display:none;position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:linear-gradient(45deg,var(--primary-color),var(--secondary-color));color:#fff;padding:14px 32px;border-radius:24px;box-shadow:0 2px 12px rgba(0,0,0,0.12);font-size:1.1em;z-index:9999;transition:opacity 0.3s;opacity:0;"></div>
+
+            <div class="stats-summary">
+                <div class="stat-card">
+                    <div class="stat-value">
+                        <span class="stat-icon">💰</span>
+                        187,829 ล้านบาท
+                    </div>
+                    <div class="stat-label">มูลค่าการส่งออกปี 2566</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">
+                        <span class="stat-icon">📈</span>
+                        141%
+                    </div>
+                    <div class="stat-label">การเติบโตจากปี 2565</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">
+                        <span class="stat-icon">👥</span>
+                        85.7%
+                    </div>
+                    <div class="stat-label">ผู้บริโภคอ่านรีวิวก่อนซื้อ</div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h2 class="card-title">การวิเคราะห์ความรู้สึก</h2>
+                    <div class="chart-container">
+                        <canvas id="sentimentChart"></canvas>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-item">
+                            <div class="metric-value">65%</div>
+                            <div class="metric-label">เชิงบวก</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value">25%</div>
+                            <div class="metric-label">เป็นกลาง</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value">10%</div>
+                            <div class="metric-label">เชิงลบ</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">การวิเคราะห์คำสำคัญ</h2>
+                    <div class="keyword-analysis">
+                        <div class="keyword-category">
+                            <div class="keyword-title">คำเชิงบวก</div>
+                            <div class="keyword-list">
+                                <span class="keyword-item">หวาน</span>
+                                <span class="keyword-item">อร่อย</span>
+                                <span class="keyword-item">คุณภาพดี</span>
+                                <span class="keyword-item">สด</span>
+                                <span class="keyword-item">ราคาคุ้มค่า</span>
+                            </div>
+                        </div>
+                        <div class="keyword-category">
+                            <div class="keyword-title">คำเป็นกลาง</div>
+                            <div class="keyword-list">
+                                <span class="keyword-item">ราคา</span>
+                                <span class="keyword-item">ขนส่ง</span>
+                                <span class="keyword-item">บรรจุภัณฑ์</span>
+                            </div>
+                        </div>
+                        <div class="keyword-category">
+                            <div class="keyword-title">คำเชิงลบ</div>
+                            <div class="keyword-list">
+                                <span class="keyword-item">แพง</span>
+                                <span class="keyword-item">ช้า</span>
+                                <span class="keyword-item">เสียหาย</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">แนวโน้มตลาด</h2>
+                    <div class="trend-header">
+                        <div class="trend-filters">
+                            <span class="trend-filter active">รายวัน</span>
+                            <span class="trend-filter">รายสัปดาห์</span>
+                            <span class="trend-filter">รายเดือน</span>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">คำแนะนำสำหรับแคมเปญ</h2>
+                    <div class="campaign-suggestions">
+                        <div class="suggestion-item">
+                            "มหัศจรรย์แห่งรสชาติ: ทุเรียนหมอนทองคุณภาพพรีเมียม หวานมันถึงใจ"
+                        </div>
+                        <div class="suggestion-item">
+                            "ส่งตรงจากสวน: ทุเรียนสดใหม่ คัดพิเศษเพื่อคุณ"
+                        </div>
+                        <div class="suggestion-item">
+                            "ราชาแห่งผลไม้: ทุเรียนไทยแท้ คุณภาพส่งออก"
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="#">เกี่ยวกับเรา</a>
+                    <a href="#">นโยบายความเป็นส่วนตัว</a>
+                    <a href="#">เงื่อนไขการใช้งาน</a>
+                    <a href="#">ติดต่อเรา</a>
+                </div>
+                <p>&copy; 2024 Durian Analytics. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <div class="tooltip"></div>
+
+    <script>
+        // Sentiment Chart
+        const sentimentCtx = document.getElementById('sentimentChart').getContext('2d');
+        const sentimentChart = new Chart(sentimentCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['เชิงบวก', 'กลาง', 'เชิงลบ'],
+                datasets: [{
+                    data: [65, 25, 10],
+                    backgroundColor: ['#4AD8B9', '#FFB86B', '#FF9248'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#2C3E50',
+                            font: {
+                                size: 12
+                            },
+                            padding: 15
+                        }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+
+        // Trend Chart
+        const trendCtx = document.getElementById('trendChart').getContext('2d');
+        const trendChart = new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: ['จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส', 'อา'],
+                datasets: [{
+                    label: 'การพูดถึง',
+                    data: [1200, 1900, 3000, 5000, 4000, 3500, 4200],
+                    borderColor: '#4AD8B9',
+                    backgroundColor: 'rgba(74, 216, 185, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    pointHoverRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        ticks: { 
+                            color: '#2C3E50',
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: { 
+                            color: '#E1E8F0',
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        ticks: { 
+                            color: '#2C3E50',
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: { 
+                            color: '#E1E8F0',
+                            drawBorder: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        function analyzeText() {
+            const text = document.querySelector('textarea').value;
+            const btn = document.getElementById('analyze-btn');
+            if (!text) {
+                alert('กรุณาใส่ข้อความที่ต้องการวิเคราะห์');
+                return;
+            }
+            btn.disabled = true;
+            btn.textContent = 'กำลังวิเคราะห์...';
+            setTimeout(() => {
+                // Simulate API call and update charts
+                updateSentimentData();
+                // --- เพิ่มส่วนบันทึกประวัติการวิเคราะห์ ---
+                const sentiments = ['เชิงบวก', 'เป็นกลาง', 'เชิงลบ'];
+                const keywordsList = [
+                    ['อร่อย', 'คุณภาพดี', 'สด'],
+                    ['ราคา', 'ขนส่ง', 'บรรจุภัณฑ์'],
+                    ['แพง', 'ช้า', 'เสียหาย']
+                ];
+                const chartData = sentimentChart.data.datasets[0].data;
+                let maxIdx = 0;
+                for (let i = 1; i < chartData.length; i++) {
+                    if (chartData[i] > chartData[maxIdx]) maxIdx = i;
+                }
+                const sentiment = sentiments[maxIdx];
+                const keywords = keywordsList[maxIdx];
+                const now = new Date();
+                const dateStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+                let history = [];
+                try {
+                    history = JSON.parse(localStorage.getItem('durian_history')) || [];
+                } catch { history = []; }
+                history.unshift({ text, date: dateStr, sentiment, keywords });
+                if (history.length > 50) history = history.slice(0, 50);
+                localStorage.setItem('durian_history', JSON.stringify(history));
+                // --- จบส่วนบันทึกประวัติ ---
+                btn.disabled = false;
+                btn.textContent = 'วิเคราะห์ข้อความ';
+                showAnalyzeToast('วิเคราะห์สำเร็จและบันทึกประวัติแล้ว');
+            }, 1200);
+        }
+
+        function showAnalyzeToast(msg) {
+            const toast = document.getElementById('analyze-toast');
+            toast.textContent = msg;
+            toast.style.display = 'block';
+            setTimeout(()=>{ toast.style.opacity = 1; }, 10);
+            setTimeout(()=>{
+                toast.style.opacity = 0;
+                setTimeout(()=>{ toast.style.display = 'none'; }, 400);
+            }, 2000);
+        }
+
+        function updateSentimentData() {
+            const newData = [
+                Math.floor(Math.random() * 30) + 50,
+                Math.floor(Math.random() * 20) + 20,
+                Math.floor(Math.random() * 10) + 5
+            ];
+            sentimentChart.data.datasets[0].data = newData;
+            sentimentChart.update();
+
+            document.querySelectorAll('.metric-value').forEach((el, i) => {
+                el.textContent = newData[i] + '%';
+            });
+        }
+
+        function updateTimeframe(period) {
+            const timeframes = {
+                week: {
+                    labels: ['จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส', 'อา'],
+                    data: [1200, 1900, 3000, 5000, 4000, 3500, 4200]
+                },
+                month: {
+                    labels: ['สัปดาห์ 1', 'สัปดาห์ 2', 'สัปดาห์ 3', 'สัปดาห์ 4'],
+                    data: [15000, 25000, 30000, 45000]
+                },
+                quarter: {
+                    labels: ['ม.ค.', 'ก.พ.', 'มี.ค.'],
+                    data: [50000, 80000, 120000]
+                }
+            };
+
+            document.querySelectorAll('.time-filter button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            trendChart.data.labels = timeframes[period].labels;
+            trendChart.data.datasets[0].data = timeframes[period].data;
+            trendChart.update();
+        }
+
+        function showTooltip(event, text) {
+            const tooltip = document.querySelector('.tooltip');
+            tooltip.style.display = 'block';
+            tooltip.style.left = event.pageX + 10 + 'px';
+            tooltip.style.top = event.pageY + 10 + 'px';
+            tooltip.textContent = text;
+
+            event.target.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+            });
+        }
+    </script>
+</body>
+</html> 

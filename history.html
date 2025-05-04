@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ประวัติการวิเคราะห์ | Durian Analytics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <img src="logo.png" alt="Durian Analytics Logo" style="height:40px; vertical-align:middle; margin-right:10px;">
+                    Durian Analytics
+                </a>
+                <div class="header-actions">
+                    <a href="index.html" class="back-home-button">← กลับหน้าแรก</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="container">
+            <div class="dashboard-title">
+                <h1>ประวัติการวิเคราะห์</h1>
+                <p>ดูประวัติข้อความที่คุณเคยวิเคราะห์และผลลัพธ์ที่ได้</p>
+            </div>
+            <div class="card">
+                <h2 class="card-title">รายการประวัติ</h2>
+                <div id="history-table-container"></div>
+            </div>
+            <!-- Modal แสดงรายละเอียด -->
+            <div id="history-modal" style="display:none;position:fixed;z-index:10000;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.25);align-items:center;justify-content:center;">
+                <div style="background:#fff;min-width:320px;max-width:95vw;padding:32px 24px 24px 24px;border-radius:18px;box-shadow:0 4px 32px rgba(0,0,0,0.18);position:relative;">
+                    <button onclick="closeModal()" style="position:absolute;top:12px;right:16px;font-size:1.5em;background:none;border:none;cursor:pointer;color:#888;">×</button>
+                    <h3 style="margin-bottom:18px;">รายละเอียดการวิเคราะห์</h3>
+                    <div id="modal-detail"></div>
+                    <div style="margin-top:24px;display:flex;flex-wrap:wrap;gap:24px;justify-content:center;">
+                        <div style="flex:1 1 220px;min-width:220px;max-width:260px;text-align:center;">
+                            <div style="font-weight:600;margin-bottom:8px;">กราฟความรู้สึก</div>
+                            <canvas id="modal-sentiment-chart" width="200" height="200"></canvas>
+                        </div>
+                        <div style="flex:1 1 220px;min-width:220px;max-width:260px;text-align:center;">
+                            <div style="font-weight:600;margin-bottom:8px;">แนวโน้ม (Mock)</div>
+                            <canvas id="modal-trend-chart" width="200" height="200"></canvas>
+                        </div>
+                    </div>
+                    <div style="margin-top:24px;">
+                        <div style="font-weight:600;margin-bottom:8px;">คำแนะนำสำหรับแคมเปญ</div>
+                        <div id="modal-suggestion" style="background:var(--background-color);padding:12px 18px;border-radius:10px;border:1px solid var(--border-color);color:var(--text-color);font-size:1.05em;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="#">เกี่ยวกับเรา</a>
+                    <a href="#">นโยบายความเป็นส่วนตัว</a>
+                    <a href="#">เงื่อนไขการใช้งาน</a>
+                    <a href="#">ติดต่อเรา</a>
+                </div>
+                <p>&copy; 2024 Durian Analytics. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // ตัวอย่างข้อมูล (mock) หากยังไม่มีใน localStorage
+        const sampleHistory = [
+            {
+                text: "ทุเรียนหมอนทองอร่อยมาก ส่งไว คุณภาพดี",
+                date: "2024-07-01 14:23",
+                sentiment: "เชิงบวก",
+                keywords: ["อร่อย", "ส่งไว", "คุณภาพดี"]
+            },
+            {
+                text: "ราคาแพงไปนิด แต่รสชาติดี",
+                date: "2024-07-02 09:10",
+                sentiment: "เป็นกลาง",
+                keywords: ["แพง", "รสชาติดี"]
+            },
+            {
+                text: "ขนส่งช้ามาก ผลไม้เสียหาย",
+                date: "2024-07-03 18:45",
+                sentiment: "เชิงลบ",
+                keywords: ["ขนส่งช้า", "เสียหาย"]
+            }
+        ];
+
+        // โหลดข้อมูลจาก localStorage หรือใช้ตัวอย่าง
+        function getHistory() {
+            const data = localStorage.getItem('durian_history');
+            if (data) {
+                try {
+                    return JSON.parse(data);
+                } catch {
+                    return sampleHistory;
+                }
+            }
+            return sampleHistory;
+        }
+
+        function saveHistory(history) {
+            localStorage.setItem('durian_history', JSON.stringify(history));
+        }
+
+        // แสดงผลในตาราง
+        function renderHistoryTable() {
+            const history = getHistory();
+            let html = `<table style="width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr style="background:var(--background-color);">
+                        <th style="padding:12px;border-bottom:1px solid var(--border-color);text-align:left;">วันที่</th>
+                        <th style="padding:12px;border-bottom:1px solid var(--border-color);text-align:left;">ข้อความที่วิเคราะห์</th>
+                        <th style="padding:12px;border-bottom:1px solid var(--border-color);text-align:left;">ผลวิเคราะห์</th>
+                        <th style="padding:12px;border-bottom:1px solid var(--border-color);text-align:left;">คำสำคัญ</th>
+                        <th style="padding:12px;border-bottom:1px solid var(--border-color);text-align:center;">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+            if (history.length === 0) {
+                html += `<tr><td colspan="5" style="text-align:center;padding:24px;color:#aaa;">ไม่มีประวัติการวิเคราะห์</td></tr>`;
+            } else {
+                history.forEach((item, idx) => {
+                    html += `<tr class='history-row' data-idx='${idx}' style='cursor:pointer;'>
+                        <td style="padding:10px 8px;border-bottom:1px solid var(--border-color);white-space:nowrap;">${item.date}</td>
+                        <td style="padding:10px 8px;border-bottom:1px solid var(--border-color);">${item.text}</td>
+                        <td style="padding:10px 8px;border-bottom:1px solid var(--border-color);">${item.sentiment}</td>
+                        <td style="padding:10px 8px;border-bottom:1px solid var(--border-color);">${item.keywords.map(k=>`<span style='background:var(--background-color);border-radius:12px;padding:2px 10px;margin-right:4px;border:1px solid var(--border-color);font-size:0.95em;'>${k}</span>`).join('')}</td>
+                        <td style="padding:10px 8px;border-bottom:1px solid var(--border-color);text-align:center;">
+                            <button onclick="deleteHistory(${idx}, event)" style="background:var(--error-color);color:#fff;border:none;border-radius:8px;padding:6px 16px;cursor:pointer;font-size:1em;">ลบ</button>
+                        </td>
+                    </tr>`;
+                });
+            }
+            html += `</tbody></table>`;
+            document.getElementById('history-table-container').innerHTML = html;
+            // เพิ่ม event สำหรับ modal
+            document.querySelectorAll('.history-row').forEach(row => {
+                row.addEventListener('click', function(e) {
+                    // ไม่เปิด modal ถ้ากดปุ่มลบ
+                    if (e.target.tagName.toLowerCase() === 'button') return;
+                    const idx = this.getAttribute('data-idx');
+                    showModal(idx);
+                });
+            });
+        }
+
+        function showModal(idx) {
+            const history = getHistory();
+            const item = history[idx];
+            let html = `<div style='margin-bottom:10px;'><b>วันที่:</b> ${item.date}</div>`;
+            html += `<div style='margin-bottom:10px;'><b>ข้อความที่วิเคราะห์:</b><br><span style='display:inline-block;background:var(--background-color);padding:10px 14px;border-radius:10px;margin-top:4px;'>${item.text}</span></div>`;
+            html += `<div style='margin-bottom:10px;'><b>ผลวิเคราะห์:</b> <span style='color:var(--primary-color);font-weight:600;'>${item.sentiment}</span></div>`;
+            html += `<div style='margin-bottom:10px;'><b>คำสำคัญ:</b> ${item.keywords.map(k=>`<span style='background:var(--background-color);border-radius:12px;padding:2px 10px;margin-right:4px;border:1px solid var(--border-color);font-size:0.95em;'>${k}</span>`).join('')}</div>`;
+            document.getElementById('modal-detail').innerHTML = html;
+            document.getElementById('history-modal').style.display = 'flex';
+            // สร้างกราฟความรู้สึก (mock data)
+            setTimeout(()=>{
+                renderModalCharts(item);
+                renderModalSuggestion(item);
+            }, 100);
+        }
+
+        function renderModalCharts(item) {
+            // ลบ chart เดิมถ้ามี
+            if(window._modalSentimentChart) window._modalSentimentChart.destroy();
+            if(window._modalTrendChart) window._modalTrendChart.destroy();
+            // กำหนด mock data สำหรับกราฟความรู้สึก
+            let data = [0,0,0];
+            if(item.sentiment==='เชิงบวก') data=[70,20,10];
+            else if(item.sentiment==='เป็นกลาง') data=[20,60,20];
+            else data=[10,20,70];
+            window._modalSentimentChart = new Chart(document.getElementById('modal-sentiment-chart').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['เชิงบวก', 'เป็นกลาง', 'เชิงลบ'],
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#4AD8B9', '#FFB86B', '#FF9248'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#2C3E50', font: { size: 12 } } } },
+                    cutout: '70%'
+                }
+            });
+            // กราฟแนวโน้ม (mock)
+            window._modalTrendChart = new Chart(document.getElementById('modal-trend-chart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ['จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส', 'อา'],
+                    datasets: [{
+                        label: 'การพูดถึง',
+                        data: [Math.random()*100+100, Math.random()*100+200, Math.random()*100+300, Math.random()*100+400, Math.random()*100+300, Math.random()*100+200, Math.random()*100+100],
+                        borderColor: '#4AD8B9',
+                        backgroundColor: 'rgba(74, 216, 185, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 2,
+                        pointHoverRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { ticks: { color: '#2C3E50', font: { size: 11 } }, grid: { color: '#E1E8F0' } }, x: { ticks: { color: '#2C3E50', font: { size: 11 } }, grid: { color: '#E1E8F0' } } }
+                }
+            });
+        }
+
+        function renderModalSuggestion(item) {
+            // mock คำแนะนำ
+            let suggestion = '';
+            if(item.sentiment==='เชิงบวก') suggestion = 'แนะนำให้เน้นโปรโมทจุดเด่น เช่น "อร่อย คุณภาพดี สดใหม่" เพื่อสร้างความเชื่อมั่นในกลุ่มลูกค้า';
+            else if(item.sentiment==='เป็นกลาง') suggestion = 'ควรปรับปรุงด้านราคา/บริการ หรือสร้างโปรโมชั่นเพื่อกระตุ้นความสนใจ';
+            else suggestion = 'ควรเร่งแก้ไขปัญหาที่ลูกค้าพบ เช่น การขนส่งหรือคุณภาพสินค้า และสื่อสารความเปลี่ยนแปลงให้ลูกค้าทราบ';
+            document.getElementById('modal-suggestion').textContent = suggestion;
+        }
+
+        function closeModal() {
+            document.getElementById('history-modal').style.display = 'none';
+        }
+
+        function deleteHistory(idx, event) {
+            event.stopPropagation();
+            if (!confirm('ยืนยันการลบประวัติรายการนี้?')) return;
+            let history = getHistory();
+            history.splice(idx, 1);
+            saveHistory(history);
+            renderHistoryTable();
+            closeModal();
+        }
+
+        // เรียกแสดงผลเมื่อโหลดหน้า
+        renderHistoryTable();
+    </script>
+    <style>
+    .back-home-button {
+        display: inline-block;
+        background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        color: #fff;
+        border: none;
+        border-radius: var(--radius-md);
+        padding: var(--spacing-sm) var(--spacing-lg);
+        font-size: 1em;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+        margin-bottom: var(--spacing-md);
+        box-shadow: var(--shadow-sm);
+    }
+    .back-home-button:hover {
+        background: linear-gradient(45deg, var(--secondary-color), var(--primary-color));
+        box-shadow: var(--shadow-md);
+    }
+    </style>
+</body>
+</html> 
