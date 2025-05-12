@@ -5,163 +5,171 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="ระบบวิเคราะห์แคมเปญการตลาดทุเรียน - วิเคราะห์ข้อมูลและติดตามผลลัพธ์">
     <meta name="keywords" content="ทุเรียน, การตลาด, วิเคราะห์, แคมเปญ">
-    <title>ระบบวิเคราะห์แคมเปญการตลาดทุเรียน</title>
+    <title>Durian Analytics - วิเคราะห์แคมเปญการตลาดทุเรียน</title>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <div class="header-content">
-                <a href="index.html" class="logo">
-                    <img src="logo.png" alt="Durian Analytics Logo" style="height:40px; vertical-align:middle; margin-right:10px;">
-                    Durian Analytics
-                </a>
-                <div class="header-actions">
-                    <a href="history.html" class="history-button">ประวัติการวิเคราะห์</a>
-                </div>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="index.html">
+                <img src="logo.png" alt="Durian Analytics Logo" class="nav-logo">
+                <h1 class="animate-color">Durian Analytics</h1>
+            </a>
+        </div>
+        <div class="nav-menu">
+            <div class="user-menu" id="userMenu" style="display: none;">
+                <span id="userName"></span>
+                <button onclick="handleLogout()" class="logout-button">ออกจากระบบ</button>
+            </div>
+            <div class="auth-buttons" id="authButtons">
+                <a href="login.html" class="login-button">เข้าสู่ระบบ</a>
+                <a href="register.html" class="register-button">ลงทะเบียน</a>
             </div>
         </div>
-    </header>
+    </nav>
 
-    <main>
-        <div class="container">
-            <div class="dashboard-title">
-                <h1>ระบบวิเคราะห์แคมเปญการตลาดทุเรียน</h1>
-                <p>ติดตามและวิเคราะห์ผลลัพธ์ของแคมเปญการตลาดทุเรียนของคุณ</p>
-            </div>
+    <div class="container" id="mainContent">
+        <div class="dashboard-title">
+            <h1>ระบบวิเคราะห์แคมเปญการตลาดทุเรียน</h1>
+            <p>วิเคราะห์ข้อความและติดตามผลลัพธ์ของแคมเปญการตลาดทุเรียนของคุณ</p>
+        </div>
 
-            <div class="analysis-input">
-                <h2>วิเคราะห์ข้อความ</h2>
-                <div class="source-selector">
-                    <div class="source-item">
-                        <input type="checkbox" id="facebook" checked>
-                        <label for="facebook">Facebook</label>
-                    </div>
-                    <div class="source-item">
-                        <input type="checkbox" id="twitter" checked>
-                        <label for="twitter">Twitter</label>
-                    </div>
-                    <div class="source-item">
-                        <input type="checkbox" id="instagram" checked>
-                        <label for="instagram">Instagram</label>
-                    </div>
+        <div class="analysis-input">
+            <h2>วิเคราะห์ข้อความ</h2>
+            <div class="source-selector">
+                <div class="source-item">
+                    <input type="checkbox" id="facebook" checked>
+                    <label for="facebook">Facebook</label>
                 </div>
-                <textarea placeholder="ใส่ข้อความที่ต้องการวิเคราะห์..."></textarea>
+                <div class="source-item">
+                    <input type="checkbox" id="twitter" checked>
+                    <label for="twitter">Twitter</label>
+                </div>
+                <div class="source-item">
+                    <input type="checkbox" id="instagram" checked>
+                    <label for="instagram">Instagram</label>
+                </div>
+            </div>
+            <textarea id="analysis-text" placeholder="ใส่ข้อความที่ต้องการวิเคราะห์..."></textarea>
+            <div class="text-validation" style="color: var(--error-color); font-size: 0.9em; margin-top: 8px; display: none;"></div>
+            <div class="button-group">
                 <button class="interactive-button" id="analyze-btn" onclick="analyzeText()">วิเคราะห์ข้อความ</button>
-            </div>
-            <div id="analyze-toast" style="display:none;position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:linear-gradient(45deg,var(--primary-color),var(--secondary-color));color:#fff;padding:14px 32px;border-radius:24px;box-shadow:0 2px 12px rgba(0,0,0,0.12);font-size:1.1em;z-index:9999;transition:opacity 0.3s;opacity:0;"></div>
-
-            <div class="stats-summary">
-                <div class="stat-card">
-                    <div class="stat-value">
-                        <span class="stat-icon">💰</span>
-                        187,829 ล้านบาท
-                    </div>
-                    <div class="stat-label">มูลค่าการส่งออกปี 2566</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">
-                        <span class="stat-icon">📈</span>
-                        141%
-                    </div>
-                    <div class="stat-label">การเติบโตจากปี 2565</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">
-                        <span class="stat-icon">👥</span>
-                        85.7%
-                    </div>
-                    <div class="stat-label">ผู้บริโภคอ่านรีวิวก่อนซื้อ</div>
+                <a href="history.html" class="history-button" id="history-btn" style="display: none;">
+                    <span class="history-icon">📋</span> ดูประวัติการวิเคราะห์
+                </a>
+                <button class="save-button" id="save-btn" onclick="saveAnalysis()" style="display: none;">
+                    <span class="save-icon">💾</span> บันทึกผลการวิเคราะห์
+                </button>
+                <div class="login-prompt" id="login-prompt" style="display: none;">
+                    <a href="login.html" class="login-link">เข้าสู่ระบบ</a> เพื่อบันทึกผลการวิเคราะห์
                 </div>
             </div>
+        </div>
+        <div id="analyze-toast" style="display:none;position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:linear-gradient(45deg,var(--primary-color),var(--secondary-color));color:#fff;padding:14px 32px;border-radius:24px;box-shadow:0 2px 12px rgba(0,0,0,0.12);font-size:1.1em;z-index:9999;transition:opacity 0.3s;opacity:0;"></div>
 
-            <div class="dashboard-grid">
-                <div class="card">
-                    <h2 class="card-title">การวิเคราะห์ความรู้สึก</h2>
-                    <div class="chart-container">
-                        <canvas id="sentimentChart"></canvas>
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+            <div style="background: white; padding: 24px; border-radius: 12px; text-align: center;">
+                <div class="loading-spinner"></div>
+                <p style="margin-top: 16px; color: var(--text-color);">กำลังวิเคราะห์ข้อความ...</p>
+            </div>
+        </div>
+
+        <!-- Error Modal -->
+        <div id="error-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+            <div style="background: white; padding: 24px; border-radius: 12px; text-align: center; max-width: 400px;">
+                <h3 style="color: var(--error-color); margin-bottom: 16px;">เกิดข้อผิดพลาด</h3>
+                <p id="error-message" style="margin-bottom: 24px;"></p>
+                <button onclick="closeErrorModal()" class="interactive-button">ตกลง</button>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h2 class="card-title">การวิเคราะห์ความรู้สึก</h2>
+                <div class="chart-container">
+                    <canvas id="sentimentChart"></canvas>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-value">65%</div>
+                        <div class="metric-label">เชิงบวก</div>
                     </div>
-                    <div class="metrics-grid">
-                        <div class="metric-item">
-                            <div class="metric-value">65%</div>
-                            <div class="metric-label">เชิงบวก</div>
+                    <div class="metric-item">
+                        <div class="metric-value">25%</div>
+                        <div class="metric-label">เป็นกลาง</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">10%</div>
+                        <div class="metric-label">เชิงลบ</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">การวิเคราะห์คำสำคัญ</h2>
+                <div class="keyword-analysis">
+                    <div class="keyword-category">
+                        <div class="keyword-title">คำเชิงบวก</div>
+                        <div class="keyword-list">
+                            <span class="keyword-item">หวาน</span>
+                            <span class="keyword-item">อร่อย</span>
+                            <span class="keyword-item">คุณภาพดี</span>
+                            <span class="keyword-item">สด</span>
+                            <span class="keyword-item">ราคาคุ้มค่า</span>
                         </div>
-                        <div class="metric-item">
-                            <div class="metric-value">25%</div>
-                            <div class="metric-label">เป็นกลาง</div>
+                    </div>
+                    <div class="keyword-category">
+                        <div class="keyword-title">คำเป็นกลาง</div>
+                        <div class="keyword-list">
+                            <span class="keyword-item">ราคา</span>
+                            <span class="keyword-item">ขนส่ง</span>
+                            <span class="keyword-item">บรรจุภัณฑ์</span>
                         </div>
-                        <div class="metric-item">
-                            <div class="metric-value">10%</div>
-                            <div class="metric-label">เชิงลบ</div>
+                    </div>
+                    <div class="keyword-category">
+                        <div class="keyword-title">คำเชิงลบ</div>
+                        <div class="keyword-list">
+                            <span class="keyword-item">แพง</span>
+                            <span class="keyword-item">ช้า</span>
+                            <span class="keyword-item">เสียหาย</span>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="card">
-                    <h2 class="card-title">การวิเคราะห์คำสำคัญ</h2>
-                    <div class="keyword-analysis">
-                        <div class="keyword-category">
-                            <div class="keyword-title">คำเชิงบวก</div>
-                            <div class="keyword-list">
-                                <span class="keyword-item">หวาน</span>
-                                <span class="keyword-item">อร่อย</span>
-                                <span class="keyword-item">คุณภาพดี</span>
-                                <span class="keyword-item">สด</span>
-                                <span class="keyword-item">ราคาคุ้มค่า</span>
-                            </div>
-                        </div>
-                        <div class="keyword-category">
-                            <div class="keyword-title">คำเป็นกลาง</div>
-                            <div class="keyword-list">
-                                <span class="keyword-item">ราคา</span>
-                                <span class="keyword-item">ขนส่ง</span>
-                                <span class="keyword-item">บรรจุภัณฑ์</span>
-                            </div>
-                        </div>
-                        <div class="keyword-category">
-                            <div class="keyword-title">คำเชิงลบ</div>
-                            <div class="keyword-list">
-                                <span class="keyword-item">แพง</span>
-                                <span class="keyword-item">ช้า</span>
-                                <span class="keyword-item">เสียหาย</span>
-                            </div>
-                        </div>
+            <div class="card">
+                <h2 class="card-title">แนวโน้มตลาด</h2>
+                <div class="trend-header">
+                    <div class="trend-filters">
+                        <button class="trend-filter active" onclick="updateTimeframe('daily')">รายวัน</button>
+                        <button class="trend-filter" onclick="updateTimeframe('weekly')">รายสัปดาห์</button>
+                        <button class="trend-filter" onclick="updateTimeframe('monthly')">รายเดือน</button>
                     </div>
                 </div>
-
-                <div class="card">
-                    <h2 class="card-title">แนวโน้มตลาด</h2>
-                    <div class="trend-header">
-                        <div class="trend-filters">
-                            <span class="trend-filter active">รายวัน</span>
-                            <span class="trend-filter">รายสัปดาห์</span>
-                            <span class="trend-filter">รายเดือน</span>
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="trendChart"></canvas>
-                    </div>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
                 </div>
+            </div>
 
-                <div class="card">
-                    <h2 class="card-title">คำแนะนำสำหรับแคมเปญ</h2>
-                    <div class="campaign-suggestions">
-                        <div class="suggestion-item">
-                            "มหัศจรรย์แห่งรสชาติ: ทุเรียนหมอนทองคุณภาพพรีเมียม หวานมันถึงใจ"
-                        </div>
-                        <div class="suggestion-item">
-                            "ส่งตรงจากสวน: ทุเรียนสดใหม่ คัดพิเศษเพื่อคุณ"
-                        </div>
-                        <div class="suggestion-item">
-                            "ราชาแห่งผลไม้: ทุเรียนไทยแท้ คุณภาพส่งออก"
-                        </div>
+            <div class="card">
+                <h2 class="card-title">คำแนะนำสำหรับแคมเปญ</h2>
+                <div class="campaign-suggestions">
+                    <div class="suggestion-item">
+                        "มหัศจรรย์แห่งรสชาติ: ทุเรียนหมอนทองคุณภาพพรีเมียม หวานมันถึงใจ"
+                    </div>
+                    <div class="suggestion-item">
+                        "ส่งตรงจากสวน: ทุเรียนสดใหม่ คัดพิเศษเพื่อคุณ"
+                    </div>
+                    <div class="suggestion-item">
+                        "ราชาแห่งผลไม้: ทุเรียนไทยแท้ คุณภาพส่งออก"
                     </div>
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 
     <footer>
         <div class="container">
@@ -180,143 +188,243 @@
     <div class="tooltip"></div>
 
     <script>
-        // Sentiment Chart
-        const sentimentCtx = document.getElementById('sentimentChart').getContext('2d');
-        const sentimentChart = new Chart(sentimentCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['เชิงบวก', 'กลาง', 'เชิงลบ'],
-                datasets: [{
-                    data: [65, 25, 10],
-                    backgroundColor: ['#4AD8B9', '#FFB86B', '#FF9248'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: '#2C3E50',
-                            font: {
-                                size: 12
-                            },
-                            padding: 15
-                        }
-                    }
-                },
-                cutout: '70%'
-            }
-        });
+        // ตรวจสอบสถานะการล็อกอิน
+        function checkLoginStatus() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            const userMenu = document.getElementById('userMenu');
+            const authButtons = document.getElementById('authButtons');
+            const userName = document.getElementById('userName');
+            const saveBtn = document.getElementById('save-btn');
+            const loginPrompt = document.getElementById('login-prompt');
+            const historyBtn = document.getElementById('history-btn');
 
-        // Trend Chart
-        const trendCtx = document.getElementById('trendChart').getContext('2d');
-        const trendChart = new Chart(trendCtx, {
-            type: 'line',
-            data: {
-                labels: ['จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส', 'อา'],
-                datasets: [{
-                    label: 'การพูดถึง',
-                    data: [1200, 1900, 3000, 5000, 4000, 3500, 4200],
-                    borderColor: '#4AD8B9',
-                    backgroundColor: 'rgba(74, 216, 185, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    borderWidth: 2,
-                    pointRadius: 3,
-                    pointHoverRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        ticks: { 
-                            color: '#2C3E50',
-                            font: {
-                                size: 11
-                            }
-                        },
-                        grid: { 
-                            color: '#E1E8F0',
-                            drawBorder: false
-                        }
-                    },
-                    x: {
-                        ticks: { 
-                            color: '#2C3E50',
-                            font: {
-                                size: 11
-                            }
-                        },
-                        grid: { 
-                            color: '#E1E8F0',
-                            drawBorder: false
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    }
+            if (currentUser) {
+                userMenu.style.display = 'flex';
+                authButtons.style.display = 'none';
+                userName.textContent = currentUser.username;
+                historyBtn.style.display = 'inline-flex';
+                if (document.querySelector('.analysis-results')) {
+                    saveBtn.style.display = 'block';
+                    loginPrompt.style.display = 'none';
+                }
+            } else {
+                userMenu.style.display = 'none';
+                authButtons.style.display = 'flex';
+                historyBtn.style.display = 'none';
+                if (document.querySelector('.analysis-results')) {
+                    saveBtn.style.display = 'none';
+                    loginPrompt.style.display = 'block';
                 }
             }
-        });
-
-        function analyzeText() {
-            const text = document.querySelector('textarea').value;
-            const btn = document.getElementById('analyze-btn');
-            if (!text) {
-                alert('กรุณาใส่ข้อความที่ต้องการวิเคราะห์');
-                return;
-            }
-            btn.disabled = true;
-            btn.textContent = 'กำลังวิเคราะห์...';
-            setTimeout(() => {
-                // Simulate API call and update charts
-                updateSentimentData();
-                // --- เพิ่มส่วนบันทึกประวัติการวิเคราะห์ ---
-                const sentiments = ['เชิงบวก', 'เป็นกลาง', 'เชิงลบ'];
-                const keywordsList = [
-                    ['อร่อย', 'คุณภาพดี', 'สด'],
-                    ['ราคา', 'ขนส่ง', 'บรรจุภัณฑ์'],
-                    ['แพง', 'ช้า', 'เสียหาย']
-                ];
-                const chartData = sentimentChart.data.datasets[0].data;
-                let maxIdx = 0;
-                for (let i = 1; i < chartData.length; i++) {
-                    if (chartData[i] > chartData[maxIdx]) maxIdx = i;
-                }
-                const sentiment = sentiments[maxIdx];
-                const keywords = keywordsList[maxIdx];
-                const now = new Date();
-                const dateStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-                let history = [];
-                try {
-                    history = JSON.parse(localStorage.getItem('durian_history')) || [];
-                } catch { history = []; }
-                history.unshift({ text, date: dateStr, sentiment, keywords });
-                if (history.length > 50) history = history.slice(0, 50);
-                localStorage.setItem('durian_history', JSON.stringify(history));
-                // --- จบส่วนบันทึกประวัติ ---
-                btn.disabled = false;
-                btn.textContent = 'วิเคราะห์ข้อความ';
-                showAnalyzeToast('วิเคราะห์สำเร็จและบันทึกประวัติแล้ว');
-            }, 1200);
+            
+            initializeCharts();
         }
 
-        function showAnalyzeToast(msg) {
-            const toast = document.getElementById('analyze-toast');
-            toast.textContent = msg;
-            toast.style.display = 'block';
-            setTimeout(()=>{ toast.style.opacity = 1; }, 10);
-            setTimeout(()=>{
-                toast.style.opacity = 0;
-                setTimeout(()=>{ toast.style.display = 'none'; }, 400);
-            }, 2000);
+        // ฟังก์ชันล็อกเอาท์
+        function handleLogout() {
+            localStorage.removeItem('currentUser');
+            window.location.reload();
+        }
+
+        // ฟังก์ชันสร้างกราฟ
+        function initializeCharts() {
+            // สร้างกราฟวิเคราะห์ความรู้สึก
+            const sentimentCtx = document.getElementById('sentimentChart').getContext('2d');
+            window.sentimentChart = new Chart(sentimentCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['เชิงบวก', 'กลาง', 'เชิงลบ'],
+                    datasets: [{
+                        data: [65, 25, 10],
+                        backgroundColor: ['#4AD8B9', '#FFB86B', '#FF9248'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#2C3E50',
+                                font: {
+                                    size: 12
+                                },
+                                padding: 15
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+
+            // สร้างกราฟแนวโน้มตลาด
+            const trendCtx = document.getElementById('trendChart').getContext('2d');
+            window.trendChart = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัส', 'ศุกร์', 'เสาร์', 'อาทิตย์'],
+                    datasets: [{
+                        label: 'จำนวนการพูดถึง',
+                        data: [1200, 1900, 3000, 5000, 4000, 3500, 4200],
+                        borderColor: '#4AD8B9',
+                        backgroundColor: 'rgba(74, 216, 185, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'จำนวนการพูดถึงรายวัน',
+                            font: {
+                                size: 16,
+                                weight: '500'
+                            },
+                            padding: {
+                                top: 10,
+                                bottom: 20
+                            }
+                        },
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            titleColor: '#2C3E50',
+                            bodyColor: '#2C3E50',
+                            borderColor: '#E1E8F0',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return 'จำนวน: ' + context.parsed.y.toLocaleString() + ' ครั้ง';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#E1E8F0',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#2C3E50',
+                                font: {
+                                    size: 12
+                                },
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#2C3E50',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        }
+
+        // เรียกใช้ฟังก์ชันตรวจสอบสถานะเมื่อโหลดหน้า
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLoginStatus();
+            
+            // เลือกแสดงข้อมูลรายวันเป็นค่าเริ่มต้น
+            document.querySelector('.trend-filter').classList.add('active');
+        });
+
+        function validateText(text) {
+            const validationDiv = document.querySelector('.text-validation');
+            if (!text.trim()) {
+                validationDiv.textContent = 'กรุณาใส่ข้อความที่ต้องการวิเคราะห์';
+                validationDiv.style.display = 'block';
+                return false;
+            }
+            validationDiv.style.display = 'none';
+            return true;
+        }
+
+        // ฟังก์ชันจัดการ Loading State
+        function showLoading(message = 'กำลังวิเคราะห์ข้อความ...') {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const loadingMessage = loadingOverlay.querySelector('p');
+            loadingMessage.textContent = message;
+            loadingOverlay.style.display = 'flex';
+        }
+
+        function hideLoading() {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            loadingOverlay.style.display = 'none';
+        }
+
+        // ฟังก์ชันวิเคราะห์ข้อความ
+        async function analyzeText() {
+            const text = document.getElementById('analysis-text').value.trim();
+            if (!text) {
+                showError('กรุณาใส่ข้อความที่ต้องการวิเคราะห์');
+                return;
+            }
+
+            try {
+                showLoading();
+                
+                // จำลองการวิเคราะห์ข้อความ
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // อัพเดทกราฟและข้อมูล
+                updateCharts(mockAnalysisResult());
+                
+                // แสดงปุ่มบันทึกผล
+                const saveBtn = document.getElementById('save-btn');
+                const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+                if (currentUser) {
+                    saveBtn.style.display = 'inline-block';
+                    document.getElementById('history-btn').style.display = 'inline-block';
+                } else {
+                    document.getElementById('login-prompt').style.display = 'block';
+                }
+
+            } catch (error) {
+                showError('เกิดข้อผิดพลาดในการวิเคราะห์ข้อความ กรุณาลองใหม่อีกครั้ง');
+                console.error('Analysis error:', error);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // ฟังก์ชันแสดงข้อผิดพลาด
+        function showError(message) {
+            const errorModal = document.getElementById('error-modal');
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = message;
+            errorModal.style.display = 'flex';
+        }
+
+        function closeErrorModal() {
+            document.getElementById('error-modal').style.display = 'none';
         }
 
         function updateSentimentData() {
@@ -325,38 +433,48 @@
                 Math.floor(Math.random() * 20) + 20,
                 Math.floor(Math.random() * 10) + 5
             ];
-            sentimentChart.data.datasets[0].data = newData;
-            sentimentChart.update();
+            window.sentimentChart.data.datasets[0].data = newData;
+            window.sentimentChart.update();
 
             document.querySelectorAll('.metric-value').forEach((el, i) => {
                 el.textContent = newData[i] + '%';
             });
         }
 
+        // ฟังก์ชันอัพเดทข้อมูลตามช่วงเวลา
         function updateTimeframe(period) {
-            const timeframes = {
-                week: {
-                    labels: ['จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส', 'อา'],
-                    data: [1200, 1900, 3000, 5000, 4000, 3500, 4200]
-                },
-                month: {
-                    labels: ['สัปดาห์ 1', 'สัปดาห์ 2', 'สัปดาห์ 3', 'สัปดาห์ 4'],
-                    data: [15000, 25000, 30000, 45000]
-                },
-                quarter: {
-                    labels: ['ม.ค.', 'ก.พ.', 'มี.ค.'],
-                    data: [50000, 80000, 120000]
-                }
-            };
-
-            document.querySelectorAll('.time-filter button').forEach(btn => {
+            // อัพเดทสถานะปุ่ม
+            document.querySelectorAll('.trend-filter').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
 
-            trendChart.data.labels = timeframes[period].labels;
-            trendChart.data.datasets[0].data = timeframes[period].data;
-            trendChart.update();
+            // ข้อมูลตามช่วงเวลา
+            const timeframeData = {
+                daily: {
+                    labels: ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัส', 'ศุกร์', 'เสาร์', 'อาทิตย์'],
+                    data: [1200, 1900, 3000, 5000, 4000, 3500, 4200],
+                    title: 'จำนวนการพูดถึงรายวัน'
+                },
+                weekly: {
+                    labels: ['สัปดาห์ที่ 1', 'สัปดาห์ที่ 2', 'สัปดาห์ที่ 3', 'สัปดาห์ที่ 4'],
+                    data: [15000, 25000, 30000, 45000],
+                    title: 'จำนวนการพูดถึงรายสัปดาห์'
+                },
+                monthly: {
+                    labels: ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน'],
+                    data: [50000, 80000, 120000, 90000, 110000, 130000],
+                    title: 'จำนวนการพูดถึงรายเดือน'
+                }
+            };
+
+            // อัพเดทกราฟ
+            if (window.trendChart) {
+                window.trendChart.data.labels = timeframeData[period].labels;
+                window.trendChart.data.datasets[0].data = timeframeData[period].data;
+                window.trendChart.options.plugins.title.text = timeframeData[period].title;
+                window.trendChart.update();
+            }
         }
 
         function showTooltip(event, text) {
@@ -370,6 +488,324 @@
                 tooltip.style.display = 'none';
             });
         }
+
+        function showToast(message) {
+            const toast = document.getElementById('analyze-toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            toast.style.opacity = '1';
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 300);
+            }, 3000);
+        }
+
+        function saveAnalysis() {
+            const text = document.getElementById('analysis-text').value.trim();
+            if (!text) {
+                showError('ไม่พบข้อความที่จะบันทึก');
+                return;
+            }
+
+            try {
+                // ดึงข้อมูลประวัติเดิม
+                const history = JSON.parse(localStorage.getItem('durian_history') || '[]');
+                
+                // สร้างข้อมูลใหม่
+                const newAnalysis = {
+                    text: text,
+                    date: new Date().toLocaleString('th-TH'),
+                    sentiment: Math.random() > 0.5 ? 'เชิงบวก' : (Math.random() > 0.5 ? 'เป็นกลาง' : 'เชิงลบ'),
+                    keywords: ['อร่อย', 'คุณภาพดี', 'สดใหม่'].slice(0, Math.floor(Math.random() * 3) + 1)
+                };
+                
+                // เพิ่มข้อมูลใหม่
+                history.unshift(newAnalysis);
+                
+                // บันทึกลง localStorage
+                localStorage.setItem('durian_history', JSON.stringify(history));
+                
+                showToast('บันทึกผลการวิเคราะห์เรียบร้อย');
+                
+                // ซ่อนปุ่มบันทึก
+                document.getElementById('save-btn').style.display = 'none';
+                
+            } catch (error) {
+                console.error('เกิดข้อผิดพลาดในการบันทึก:', error);
+                showError('เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        // ฟังก์ชัน Mock ข้อมูลสำหรับการวิเคราะห์
+        function mockAnalysisResult() {
+            return {
+                sentiment: {
+                    positive: Math.floor(Math.random() * 30) + 50,
+                    neutral: Math.floor(Math.random() * 20) + 20,
+                    negative: Math.floor(Math.random() * 10) + 5
+                },
+                keywords: {
+                    positive: ['หวาน', 'อร่อย', 'คุณภาพดี', 'สด', 'น่าทาน'],
+                    neutral: ['ราคา', 'ขนส่ง', 'บรรจุภัณฑ์', 'ทุเรียน'],
+                    negative: ['แพง', 'ช้า', 'เสียหาย', 'ไม่สด']
+                },
+                suggestions: [
+                    'แคมเปญ "ทุเรียนสดใหม่ส่งตรงจากสวน" เน้นจุดขายเรื่องความสดใหม่',
+                    'โปรโมชั่น "ทุเรียนคุณภาพดี การันตีความอร่อย" เน้นคุณภาพและรสชาติ',
+                    'แคมเปญ "ทุเรียนคุณภาพส่งออก ราคาย่อมเยา" เพื่อแก้ปัญหาเรื่องราคา'
+                ]
+            };
+        }
+
+        // ฟังก์ชันอัพเดทกราฟและข้อมูลเมื่อวิเคราะห์
+        function updateCharts(result) {
+            // อัพเดทกราฟความรู้สึก
+            window.sentimentChart.data.datasets[0].data = [
+                result.sentiment.positive,
+                result.sentiment.neutral,
+                result.sentiment.negative
+            ];
+            window.sentimentChart.update();
+
+            // อัพเดทค่าเปอร์เซ็นต์
+            document.querySelectorAll('.metric-value')[0].textContent = result.sentiment.positive + '%';
+            document.querySelectorAll('.metric-value')[1].textContent = result.sentiment.neutral + '%';
+            document.querySelectorAll('.metric-value')[2].textContent = result.sentiment.negative + '%';
+
+            // อัพเดทคำสำคัญ
+            updateKeywords(result.keywords);
+
+            // อัพเดทคำแนะนำ
+            updateSuggestions(result.suggestions);
+        }
+
+        function updateKeywords(keywords) {
+            const keywordContainers = document.querySelectorAll('.keyword-list');
+            // คำเชิงบวก
+            let positiveHTML = '';
+            keywords.positive.forEach(word => {
+                positiveHTML += `<span class="keyword-item">${word}</span>`;
+            });
+            keywordContainers[0].innerHTML = positiveHTML;
+
+            // คำเป็นกลาง
+            let neutralHTML = '';
+            keywords.neutral.forEach(word => {
+                neutralHTML += `<span class="keyword-item">${word}</span>`;
+            });
+            keywordContainers[1].innerHTML = neutralHTML;
+
+            // คำเชิงลบ
+            let negativeHTML = '';
+            keywords.negative.forEach(word => {
+                negativeHTML += `<span class="keyword-item">${word}</span>`;
+            });
+            keywordContainers[2].innerHTML = negativeHTML;
+        }
+
+        function updateSuggestions(suggestions) {
+            const suggestionContainer = document.querySelector('.campaign-suggestions');
+            let html = '';
+            suggestions.forEach(suggestion => {
+                html += `<div class="suggestion-item">"${suggestion}"</div>`;
+            });
+            suggestionContainer.innerHTML = html;
+        }
     </script>
+
+    <style>
+    /* เพิ่ม CSS สำหรับ Loading Spinner */
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid var(--background-color);
+        border-top: 4px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* ปรับแต่ง Textarea */
+    #analysis-text {
+        width: 100%;
+        min-height: 120px;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        font-size: 1em;
+        resize: vertical;
+        transition: border-color 0.3s;
+    }
+
+    #analysis-text:focus {
+        outline: none;
+        border-color: var(--primary-color);
+    }
+
+    /* ปรับแต่ง Error Message */
+    .text-validation {
+        transition: all 0.3s;
+    }
+
+    /* ปรับแต่ง Button Group */
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .button-group > * {
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--radius-md);
+        font-size: 1em;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .interactive-button {
+        background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border: none;
+    }
+
+    .interactive-button:hover {
+        background: linear-gradient(45deg, var(--secondary-color), var(--primary-color));
+        transform: translateY(-1px);
+    }
+
+    .history-button {
+        background: var(--background-color);
+        color: var(--primary-color);
+        border: 1px solid var(--primary-color);
+    }
+
+    .history-button:hover {
+        background: var(--primary-color);
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .save-button {
+        background: var(--secondary-color);
+        color: white;
+        border: none;
+    }
+
+    .save-button:hover {
+        background: var(--accent-color);
+        transform: translateY(-1px);
+    }
+
+    .history-icon, .save-icon {
+        font-size: 1.2em;
+    }
+
+    /* ปรับแต่ง Login Prompt */
+    .login-prompt {
+        color: var(--text-color);
+        font-size: 0.9em;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .login-prompt .login-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .login-prompt .login-link:hover {
+        text-decoration: underline;
+    }
+
+    /* ปรับแต่ง Navbar */
+    .navbar {
+        background-color: var(--card-background);
+        padding: 1.5rem 2.5rem;
+        box-shadow: var(--shadow-sm);
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 20px;
+    }
+
+    .nav-brand {
+        display: flex;
+        align-items: center;
+    }
+
+    .nav-logo {
+        width: 60px;
+        height: 60px;
+        margin-right: 15px;
+    }
+
+    .nav-brand h1 {
+        font-size: 1.8rem;
+    }
+
+    /* ปรับแต่ง Container */
+    .container {
+        max-width: 1300px;
+        padding: 0 2rem;
+    }
+
+    /* ปรับแต่ง Dashboard Title */
+    .dashboard-title {
+        margin: 2rem 0 3rem;
+    }
+
+    .dashboard-title h1 {
+        font-size: 2.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .dashboard-title p {
+        font-size: 1.2rem;
+        max-width: 700px;
+    }
+
+    /* ปรับแต่งปุ่มเลือกช่วงเวลา */
+    .trend-filters {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .trend-filter {
+        padding: 8px 16px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        background: white;
+        color: var(--text-color);
+        cursor: pointer;
+        font-size: 0.9em;
+        transition: all 0.3s ease;
+    }
+
+    .trend-filter:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
+
+    .trend-filter.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+    </style>
 </body>
 </html> 
