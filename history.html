@@ -129,11 +129,24 @@
                 html += `<tr><td colspan="5" style="text-align:center;padding:24px;color:#aaa;">ไม่มีประวัติการวิเคราะห์</td></tr>`;
             } else {
                 history.forEach((item, idx) => {
+                    // ตรวจสอบว่าคำหลักอยู่ในรูปแบบใด (เก่าหรือใหม่)
+                    let keywordsArray = [];
+                    if (Array.isArray(item.keywords)) {
+                        // รูปแบบใหม่ - ข้อมูลคีย์เวิร์ดเป็น array ตรงๆ
+                        keywordsArray = item.keywords;
+                    } else if (typeof item.keywords === 'object' && item.keywords !== null) {
+                        // รูปแบบเก่า - ข้อมูลคีย์เวิร์ดเป็น object แยกตามประเภท
+                        const positiveKeys = item.keywords.positive || [];
+                        const neutralKeys = item.keywords.neutral || [];
+                        const negativeKeys = item.keywords.negative || [];
+                        keywordsArray = [...positiveKeys, ...neutralKeys, ...negativeKeys];
+                    }
+
                     html += `<tr class='history-row' data-idx='${idx}' style='cursor:pointer;'>
                         <td style="padding:10px 8px;border-bottom:1px solid var(--border-color);white-space:nowrap;">${item.date}</td>
                         <td style="padding:10px 8px;border-bottom:1px solid var(--border-color);">${item.text}</td>
                         <td style="padding:10px 8px;border-bottom:1px solid var(--border-color);">${item.sentiment}</td>
-                        <td style="padding:10px 8px;border-bottom:1px solid var(--border-color);">${item.keywords.map(k=>`<span style='background:var(--background-color);border-radius:12px;padding:2px 10px;margin-right:4px;border:1px solid var(--border-color);font-size:0.95em;'>${k}</span>`).join('')}</td>
+                        <td style="padding:10px 8px;border-bottom:1px solid var(--border-color);">${keywordsArray.map(k=>`<span style='background:var(--background-color);border-radius:12px;padding:2px 10px;margin-right:4px;border:1px solid var(--border-color);font-size:0.95em;'>${k}</span>`).join('')}</td>
                         <td style="padding:10px 8px;border-bottom:1px solid var(--border-color);text-align:center;">
                             <button onclick="deleteHistory(${idx}, event)" style="background:var(--error-color);color:#fff;border:none;border-radius:8px;padding:6px 16px;cursor:pointer;font-size:1em;">ลบ</button>
                         </td>
@@ -156,10 +169,24 @@
         function showModal(idx) {
             const history = getHistory();
             const item = history[idx];
+            
+            // ตรวจสอบว่าคำหลักอยู่ในรูปแบบใด (เก่าหรือใหม่)
+            let keywordsArray = [];
+            if (Array.isArray(item.keywords)) {
+                // รูปแบบใหม่ - ข้อมูลคีย์เวิร์ดเป็น array ตรงๆ
+                keywordsArray = item.keywords;
+            } else if (typeof item.keywords === 'object' && item.keywords !== null) {
+                // รูปแบบเก่า - ข้อมูลคีย์เวิร์ดเป็น object แยกตามประเภท
+                const positiveKeys = item.keywords.positive || [];
+                const neutralKeys = item.keywords.neutral || [];
+                const negativeKeys = item.keywords.negative || [];
+                keywordsArray = [...positiveKeys, ...neutralKeys, ...negativeKeys];
+            }
+            
             let html = `<div style='margin-bottom:10px;'><b>วันที่:</b> ${item.date}</div>`;
             html += `<div style='margin-bottom:10px;'><b>ข้อความที่วิเคราะห์:</b><br><span style='display:inline-block;background:var(--background-color);padding:10px 14px;border-radius:10px;margin-top:4px;'>${item.text}</span></div>`;
             html += `<div style='margin-bottom:10px;'><b>ผลวิเคราะห์:</b> <span style='color:var(--primary-color);font-weight:600;'>${item.sentiment}</span></div>`;
-            html += `<div style='margin-bottom:10px;'><b>คำสำคัญ:</b> ${item.keywords.map(k=>`<span style='background:var(--background-color);border-radius:12px;padding:2px 10px;margin-right:4px;border:1px solid var(--border-color);font-size:0.95em;'>${k}</span>`).join('')}</div>`;
+            html += `<div style='margin-bottom:10px;'><b>คำสำคัญ:</b> ${keywordsArray.map(k=>`<span style='background:var(--background-color);border-radius:12px;padding:2px 10px;margin-right:4px;border:1px solid var(--border-color);font-size:0.95em;'>${k}</span>`).join('')}</div>`;
             document.getElementById('modal-detail').innerHTML = html;
             document.getElementById('history-modal').style.display = 'flex';
             // สร้างกราฟความรู้สึก (mock data)
@@ -173,11 +200,24 @@
             // ลบ chart เดิมถ้ามี
             if(window._modalSentimentChart) window._modalSentimentChart.destroy();
             if(window._modalTrendChart) window._modalTrendChart.destroy();
-            // กำหนด mock data สำหรับกราฟความรู้สึก
-            let data = [0,0,0];
-            if(item.sentiment==='เชิงบวก') data=[70,20,10];
-            else if(item.sentiment==='เป็นกลาง') data=[20,60,20];
-            else data=[10,20,70];
+            
+            // กำหนดข้อมูลสำหรับกราฟความรู้สึก
+            let data = [0, 0, 0]; // [positive, neutral, negative]
+            
+            // ใช้ข้อมูลอัตราส่วนความรู้สึกจริงหากมี
+            if (item.sentiment_ratio) {
+                data = [
+                    item.sentiment_ratio.positive || 0,
+                    item.sentiment_ratio.neutral || 0,
+                    item.sentiment_ratio.negative || 0
+                ];
+            } else {
+                // ใช้ค่าจำลองตามความรู้สึกที่บันทึกไว้
+                if (item.sentiment === 'เชิงบวก') data = [70, 20, 10];
+                else if (item.sentiment === 'เป็นกลาง') data = [20, 60, 20];
+                else data = [10, 20, 70];
+            }
+            
             window._modalSentimentChart = new Chart(document.getElementById('modal-sentiment-chart').getContext('2d'), {
                 type: 'doughnut',
                 data: {

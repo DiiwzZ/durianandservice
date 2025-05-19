@@ -391,11 +391,29 @@
             try {
                 showLoading();
                 
-                // จำลองการวิเคราะห์ข้อความ
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                // เรียกใช้ API จาก ai_service.py
+                const response = await fetch('http://localhost:5000/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
+                }
+                
+                const result = await response.json();
+                
+                // สร้างข้อมูลผลลัพธ์สำหรับการแสดงผล
+                const analysisResult = processAnalysisResult(result, text);
+                
+                // เก็บผลการวิเคราะห์ล่าสุดไว้ใช้ในการบันทึก
+                window.lastAnalysisResult = analysisResult;
                 
                 // อัพเดทกราฟและข้อมูล
-                updateCharts(mockAnalysisResult());
+                updateCharts(analysisResult);
                 
                 // แสดงปุ่มบันทึกผล
                 const saveBtn = document.getElementById('save-btn');
@@ -408,11 +426,84 @@
                 }
 
             } catch (error) {
-                showError('เกิดข้อผิดพลาดในการวิเคราะห์ข้อความ กรุณาลองใหม่อีกครั้ง');
+                showError('เกิดข้อผิดพลาดในการวิเคราะห์ข้อความ: ' + error.message);
                 console.error('Analysis error:', error);
             } finally {
                 hideLoading();
             }
+        }
+        
+        // แปลงผลลัพธ์จาก API เป็นรูปแบบที่เหมาะสมสำหรับการแสดงผล
+        function processAnalysisResult(apiResult, originalText) {
+            // แปลงความรู้สึกเป็นภาษาไทย
+            const sentimentMap = {
+                'positive': 'เชิงบวก',
+                'negative': 'เชิงลบ',
+                'neutral': 'เป็นกลาง'
+            };
+            
+            // คำนวณเปอร์เซ็นต์ความรู้สึก โดยใช้ค่าจาก sentiment_ratios โดยตรง
+            const sentimentRatios = apiResult.details?.sentiment_ratios || { positive: 0, negative: 0, neutral: 0 };
+            const positivePercent = Math.round(sentimentRatios.positive * 100);
+            const neutralPercent = Math.round(sentimentRatios.neutral * 100);
+            const negativePercent = Math.round(sentimentRatios.negative * 100);
+            
+            // ใช้คำที่แยกแล้วจาก backend จากส่วน found_words แทนการใช้ค่าเริ่มต้น
+            const positiveKeywords = apiResult.details?.found_positive_words || [];
+            const negativeKeywords = apiResult.details?.found_negative_words || [];
+            const neutralKeywords = apiResult.details?.found_neutral_words || [];
+            const durianTypes = apiResult.details?.found_durian_types || [];
+            
+            // ถ้าไม่พบคำในแต่ละประเภท ให้ใช้ข้อความ '-' แทนการใช้คำเริ่มต้น
+            const emptyKeywords = ['-'];
+            
+            // สร้างคำแนะนำสำหรับแคมเปญ
+            let suggestions = [];
+            
+            if (positivePercent > negativePercent) {
+                suggestions = [
+                    `ทุเรียนคุณภาพเยี่ยม${positiveKeywords.length > 0 ? ` ${positiveKeywords[0]}` : ''} ส่งตรงจากสวน`,
+                    `ทุเรียนหมอนทองแท้ การันตีความ${positiveKeywords.length > 1 ? positiveKeywords[1] : 'อร่อย'}`,
+                    `ลิ้มรสทุเรียนคุณภาพส่งออก ราชาแห่งผลไม้`
+                ];
+            } else if (negativePercent > positivePercent) {
+                if (negativeKeywords.includes('แพง') || originalText.includes('ราคา')) {
+                    suggestions = [
+                        "โปรโมชั่นพิเศษ: ซื้อทุเรียนคุณภาพในราคาย่อมเยา",
+                        "แคมเปญทุเรียนราคาโรงเรียน คุณภาพส่งออก",
+                        "ซื้อ 1 แถม 1 เฉพาะลูกค้าที่สั่งล่วงหน้า"
+                    ];
+                } else {
+                    suggestions = [
+                        "การันตีความสดใหม่ ส่งตรงจากสวนภายใน 24 ชั่วโมง",
+                        "รับประกันความพึงพอใจ หรือคืนเงินเต็มจำนวน",
+                        "ทุเรียนคุณภาพดี คัดพิเศษทุกลูก"
+                    ];
+                }
+            } else {
+                suggestions = [
+                    "ทุเรียนหมอนทองคุณภาพดี ราคาเป็นมิตร",
+                    "ทุเรียนสดจากสวน ส่งถึงบ้านคุณ",
+                    "สั่งล่วงหน้า รับส่วนลดพิเศษ 15%"
+                ];
+            }
+            
+            return {
+                sentiment: {
+                    positive: positivePercent,
+                    neutral: neutralPercent,
+                    negative: negativePercent
+                },
+                keywords: {
+                    positive: positiveKeywords.length > 0 ? positiveKeywords : emptyKeywords,
+                    neutral: neutralKeywords.length > 0 ? neutralKeywords : emptyKeywords,
+                    negative: negativeKeywords.length > 0 ? negativeKeywords : emptyKeywords,
+                    durian_types: durianTypes.length > 0 ? durianTypes : emptyKeywords
+                },
+                suggestions: suggestions,
+                sentiment_text: sentimentMap[apiResult.sentiment] || apiResult.sentiment,
+                confidence: apiResult.confidence
+            };
         }
 
         // ฟังก์ชันแสดงข้อผิดพลาด
@@ -514,12 +605,36 @@
                 // ดึงข้อมูลประวัติเดิม
                 const history = JSON.parse(localStorage.getItem('durian_history') || '[]');
                 
-                // สร้างข้อมูลใหม่
+                // ดึงข้อมูลจากผลการวิเคราะห์ล่าสุด
+                const lastAnalysisResult = window.lastAnalysisResult;
+                if (!lastAnalysisResult) {
+                    showError('ไม่พบผลการวิเคราะห์ล่าสุด กรุณาวิเคราะห์ข้อความก่อนบันทึก');
+                    return;
+                }
+                
+                // สร้างข้อมูลใหม่จากผลการวิเคราะห์จริง
                 const newAnalysis = {
                     text: text,
                     date: new Date().toLocaleString('th-TH'),
-                    sentiment: Math.random() > 0.5 ? 'เชิงบวก' : (Math.random() > 0.5 ? 'เป็นกลาง' : 'เชิงลบ'),
-                    keywords: ['อร่อย', 'คุณภาพดี', 'สดใหม่'].slice(0, Math.floor(Math.random() * 3) + 1)
+                    sentiment: lastAnalysisResult.sentiment_text,
+                    // เพิ่มรายการคำหลักในรูปแบบอาร์เรย์เดียวเพื่อให้สอดคล้องกับ history.html
+                    keywords: [
+                        ...lastAnalysisResult.keywords.positive.filter(k => k !== '-'),
+                        ...lastAnalysisResult.keywords.neutral.filter(k => k !== '-'),
+                        ...lastAnalysisResult.keywords.negative.filter(k => k !== '-')
+                    ],
+                    // เก็บข้อมูลอื่นๆ ที่อาจจำเป็นในอนาคต
+                    confidence: Math.round(lastAnalysisResult.confidence * 100),
+                    sentiment_ratio: {
+                        positive: lastAnalysisResult.sentiment.positive,
+                        neutral: lastAnalysisResult.sentiment.neutral,
+                        negative: lastAnalysisResult.sentiment.negative
+                    },
+                    full_keywords: {
+                        positive: lastAnalysisResult.keywords.positive.filter(k => k !== '-'),
+                        neutral: lastAnalysisResult.keywords.neutral.filter(k => k !== '-'),
+                        negative: lastAnalysisResult.keywords.negative.filter(k => k !== '-')
+                    }
                 };
                 
                 // เพิ่มข้อมูลใหม่
@@ -539,27 +654,6 @@
             }
         }
 
-        // ฟังก์ชัน Mock ข้อมูลสำหรับการวิเคราะห์
-        function mockAnalysisResult() {
-            return {
-                sentiment: {
-                    positive: Math.floor(Math.random() * 30) + 50,
-                    neutral: Math.floor(Math.random() * 20) + 20,
-                    negative: Math.floor(Math.random() * 10) + 5
-                },
-                keywords: {
-                    positive: ['หวาน', 'อร่อย', 'คุณภาพดี', 'สด', 'น่าทาน'],
-                    neutral: ['ราคา', 'ขนส่ง', 'บรรจุภัณฑ์', 'ทุเรียน'],
-                    negative: ['แพง', 'ช้า', 'เสียหาย', 'ไม่สด']
-                },
-                suggestions: [
-                    'แคมเปญ "ทุเรียนสดใหม่ส่งตรงจากสวน" เน้นจุดขายเรื่องความสดใหม่',
-                    'โปรโมชั่น "ทุเรียนคุณภาพดี การันตีความอร่อย" เน้นคุณภาพและรสชาติ',
-                    'แคมเปญ "ทุเรียนคุณภาพส่งออก ราคาย่อมเยา" เพื่อแก้ปัญหาเรื่องราคา'
-                ]
-            };
-        }
-
         // ฟังก์ชันอัพเดทกราฟและข้อมูลเมื่อวิเคราะห์
         function updateCharts(result) {
             // อัพเดทกราฟความรู้สึก
@@ -574,6 +668,11 @@
             document.querySelectorAll('.metric-value')[0].textContent = result.sentiment.positive + '%';
             document.querySelectorAll('.metric-value')[1].textContent = result.sentiment.neutral + '%';
             document.querySelectorAll('.metric-value')[2].textContent = result.sentiment.negative + '%';
+            
+            // อัพเดทค่า metric-label ให้ชัดเจนว่าเป็นความรู้สึกแบบใด
+            document.querySelectorAll('.metric-label')[0].textContent = 'เชิงบวก';
+            document.querySelectorAll('.metric-label')[1].textContent = 'เป็นกลาง';
+            document.querySelectorAll('.metric-label')[2].textContent = 'เชิงลบ';
 
             // อัพเดทคำสำคัญ
             updateKeywords(result.keywords);
@@ -584,26 +683,68 @@
 
         function updateKeywords(keywords) {
             const keywordContainers = document.querySelectorAll('.keyword-list');
+            
             // คำเชิงบวก
             let positiveHTML = '';
-            keywords.positive.forEach(word => {
-                positiveHTML += `<span class="keyword-item">${word}</span>`;
-            });
+            if (keywords.positive.length > 0 && keywords.positive[0] !== '-') {
+                keywords.positive.forEach(word => {
+                    positiveHTML += `<span class="keyword-item">${word}</span>`;
+                });
+            } else {
+                positiveHTML = '<span class="keyword-item empty-keyword">ไม่พบคำเชิงบวก</span>';
+            }
             keywordContainers[0].innerHTML = positiveHTML;
 
             // คำเป็นกลาง
             let neutralHTML = '';
-            keywords.neutral.forEach(word => {
-                neutralHTML += `<span class="keyword-item">${word}</span>`;
-            });
+            if (keywords.neutral.length > 0 && keywords.neutral[0] !== '-') {
+                keywords.neutral.forEach(word => {
+                    neutralHTML += `<span class="keyword-item">${word}</span>`;
+                });
+            } else {
+                neutralHTML = '<span class="keyword-item empty-keyword">ไม่พบคำเป็นกลาง</span>';
+            }
             keywordContainers[1].innerHTML = neutralHTML;
 
             // คำเชิงลบ
             let negativeHTML = '';
-            keywords.negative.forEach(word => {
-                negativeHTML += `<span class="keyword-item">${word}</span>`;
-            });
+            if (keywords.negative.length > 0 && keywords.negative[0] !== '-') {
+                keywords.negative.forEach(word => {
+                    negativeHTML += `<span class="keyword-item">${word}</span>`;
+                });
+            } else {
+                negativeHTML = '<span class="keyword-item empty-keyword">ไม่พบคำเชิงลบ</span>';
+            }
             keywordContainers[2].innerHTML = negativeHTML;
+            
+            // เพิ่มการแสดงประเภททุเรียนที่พบ (ถ้ามี)
+            if (keywords.durian_types && keywords.durian_types.length > 0 && keywords.durian_types[0] !== '-') {
+                // หาพื้นที่ที่เหมาะสมในการแสดงข้อมูลเพิ่มเติม
+                const additionalInfoArea = document.querySelector('.keyword-analysis');
+                if (additionalInfoArea) {
+                    // ตรวจสอบว่ามีส่วนแสดงประเภททุเรียนอยู่แล้วหรือไม่
+                    let durianTypeSection = document.querySelector('.keyword-category.durian-types');
+                    
+                    if (!durianTypeSection) {
+                        // สร้างส่วนประเภททุเรียนใหม่
+                        durianTypeSection = document.createElement('div');
+                        durianTypeSection.className = 'keyword-category durian-types';
+                        durianTypeSection.innerHTML = `
+                            <div class="keyword-title">ประเภททุเรียน</div>
+                            <div class="keyword-list durian-types-list"></div>
+                        `;
+                        additionalInfoArea.appendChild(durianTypeSection);
+                    }
+                    
+                    // แสดงรายการประเภททุเรียน
+                    const durianTypesListElement = durianTypeSection.querySelector('.durian-types-list');
+                    let durianTypesHTML = '';
+                    keywords.durian_types.forEach(type => {
+                        durianTypesHTML += `<span class="keyword-item durian-type-item">${type}</span>`;
+                    });
+                    durianTypesListElement.innerHTML = durianTypesHTML;
+                }
+            }
         }
 
         function updateSuggestions(suggestions) {
@@ -617,6 +758,65 @@
     </script>
 
     <style>
+    /* เพิ่ม CSS สำหรับ empty-keyword */
+    .empty-keyword {
+        background-color: #f5f5f5;
+        color: #888;
+        font-style: italic;
+    }
+    
+    /* เพิ่ม CSS สำหรับผลการแยกคำ */
+    .found-words {
+        margin-top: 16px;
+        padding: 12px;
+        background: rgba(74, 216, 185, 0.1);
+        border-radius: 8px;
+        border: 1px solid #e1e8f0;
+    }
+    
+    .found-words p {
+        margin: 8px 0;
+    }
+    
+    .found-words strong {
+        color: #4AD8B9;
+        font-weight: 600;
+    }
+    
+    .result-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e1e8f0;
+        margin-top: 16px;
+    }
+    
+    .result-card h3 {
+        color: #4AD8B9;
+        margin-bottom: 16px;
+        border-bottom: 1px solid #e1e8f0;
+        padding-bottom: 8px;
+    }
+    
+    /* เพิ่ม CSS สำหรับ Keyword Item */
+    .keyword-item {
+        display: inline-block;
+        padding: 6px 12px;
+        background: white;
+        border-radius: 20px;
+        margin: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e1e8f0;
+        font-size: 0.9em;
+        transition: all 0.2s ease;
+    }
+    
+    .keyword-item:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+    
     /* เพิ่ม CSS สำหรับ Loading Spinner */
     .loading-spinner {
         width: 40px;
