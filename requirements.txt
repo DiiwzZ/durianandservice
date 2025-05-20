@@ -1,6 +1,8 @@
 torch>=2.0.0
-transformers>=4.30.2
+transformers==4.30.2
+sentencepiece>=0.1.99
 pythainlp>=4.0.2
 flask>=2.3.3
+flask-cors>=4.0.0
 numpy>=1.24.3
 pandas>=2.0.3 
